@@ -25,14 +25,83 @@ test:
     - CI=true npm test
     - echo "Test successfully!"
 
-docker-build:
-  stage: docker-build
+#----------------------------
+# Build Docker image
+#----------------------------
+🐳docker-build:
   image: docker:latest
-  services: 
-    - name: docker:19.03.8-dind
+  stage: build
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - docker:dind
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE" .
-    - docker push "$CI_REGISTRY_IMAGE"
+    - docker pull $CI_REGISTRY_IMAGE:latest || true
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --tag $CI_REGISTRY_IMAGE:latest .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE:latest
+
+#----------------------------
+# YAML Anchors
+#----------------------------
+.environment_variables: &environment_variables
+- |
+  export CONTAINER_PORT=${CONTAINER_PORT:-3000}
+  export EXPOSED_PORT=${EXPOSED_PORT:-80}
+  export APPLICATION_NAME=${CI_PROJECT_NAME}
+  export REPLICAS=2
+  export NAMESPACE=react-app
+  export TAG=${CI_COMMIT_SHORT_SHA}
+  export IMAGE=$CI_REGISTRY_IMAGE:$TAG
+  export BASE_DOMAIN="${KUBE_INGRESS_BASE_DOMAIN}"
+  export BRANCH=${CI_COMMIT_REF_SLUG}
+  export HOST="${APPLICATION_NAME}.${BRANCH}.${BASE_DOMAIN}"
+
+.environment_variables_substitution: &environment_variables_substitution
+- |
+  envsubst < ./.k8s/deploy.template.yaml > ./.k8s/deploy.${TAG}.yaml
+  echo "Substitution -> ./.k8s/deploy.${TAG}.yaml"
+  cat ./.k8s/deploy.${TAG}.yaml
+
+.ensure_secret: &ensure_secret
+- |
+  echo "Checking secret.."
+  kubectl describe secrets image-pull-secret -n "$NAMESPACE" || \
+    kubectl create secret -n "$NAMESPACE" \
+      docker-registry image-pull-secret \
+      --docker-server="$CI_REGISTRY" \
+      --docker-username="${DOCKER_USERNAME:-${CI_REGISTRY_USER}}" \
+      --docker-password="${DOCKER_PASSWORD:-${CI_REGISTRY_PASSWORD}}" \
+      --docker-email="${DOCKER_EMAIL:-${GITLAB_USER_EMAIL}}" \
+      -o yaml --dry-run | kubectl replace -n "$NAMESPACE" --force -f -
+
+.kubectl_apply: &kubectl_apply
+- |
+  kubectl apply -f ./.k8s/deploy.${TAG}.yaml -n ${NAMESPACE}
+
+.display_information: &display_information
+- |
+  echo "http://${HOST}"
+  kubectl get pods --namespace ${NAMESPACE}
+
+#----------------------------
+# Deploy
+#----------------------------
+🚀deploy-to-production:
+  stage: deploy
+  image: registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.16.1
+  only:
+    - main
+  environment:
+    name: production/${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}
+    url: http://${HOST}
+  script:
+    - *environment_variables
+    - *environment_variables_substitution
+    - *ensure_secret
+    - *kubectl_apply
+    - *display_information
 
