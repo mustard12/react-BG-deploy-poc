@@ -1,6 +1,12 @@
 #----------------------------
 # Kubernetes manifests
 #----------------------------
+# namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: react-app
+
 ---
 # Deployment
 apiVersion: apps/v1
