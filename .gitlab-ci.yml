@@ -2,6 +2,9 @@ stages:
   - build
   - deploy
 
+variables:
+  NAMESPACE: react-app
+
 #----------------------------
 # Build Docker image
 #----------------------------
@@ -22,6 +25,36 @@ stages:
     - docker push $CI_REGISTRY_IMAGE:latest
 
 #----------------------------
+# deploy template
+#----------------------------
+.deploy_template: &deploy_template
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: manual
+      allow_failure: true
+  script:
+    - export HELM_RELEASE_NAME="$BLUE_GREEN_DEPLOY"
+  environment:
+    name: "$BLUE_GREEN_DEPLOY"
+    url: http://$BLUE_GREEN_DEPLOY-$CI_PROJECT_PATH_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+    kubernetes:
+      namespace: ${NAMESPACE}
+
+
+.switch_template: &switch_template
+  stage: switch
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: manual
+      allow_failure: true
+  script:
+    - echo "merong"
+
+
+
+
+#----------------------------
 # YAML Anchors
 #----------------------------
 .environment_variables: &environment_variables
@@ -30,7 +63,7 @@ stages:
   export EXPOSED_PORT=${EXPOSED_PORT:-80}
   export APPLICATION_NAME=${CI_PROJECT_NAME}
   export REPLICAS=2
-  export NAMESPACE=react-app
+  export NAMESPACE=${NAMESPACE}
   export TAG=${CI_COMMIT_SHORT_SHA}
   export IMAGE=$CI_REGISTRY_IMAGE:$TAG
   export BASE_DOMAIN="${KUBE_INGRESS_BASE_DOMAIN}"
@@ -69,19 +102,33 @@ stages:
 #----------------------------
 🚀deploy-to-production:
   stage: deploy
-  image: registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.16.1
-  #image: k33g/k3g.utilities:1.0.0
+  #image: registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.16.1
+  image: k33g/k3g.utilities:1.0.0
   only:
     - main
   environment:
     name: production/${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}
     url: http://${HOST}
-  before_script:
-    - apk add gettext
+  #before_script:
+  #  - apk add gettext
   script:
     - *environment_variables
     - *environment_variables_substitution
     - *ensure_secret
     - *kubectl_apply
     - *display_information
+
+#-------------------------
+# blue & green
+#-------------------------
+deploy to blue:
+  <<: *deploy_template
+  variables:
+    BLUE_GREEN_DEPLOY: blue
+
+deploy to green:
+  <<: *deploy_template
+  variables:
+    BLUE_GREEN_DEPLOY: green
+
 
