@@ -120,11 +120,9 @@ variables:
 #----------------------------
 🚀deploy-to-production:
   stage: deploy
-  image: registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.16.1
+  #image: registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.16.1
+  image: registry.gitlab.com/infograb-public/docker/auto-deploy-image-eks:latest
   #image: k33g/k3g.utilities:1.0.0
-  services:
-    - name: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
-      entrypoint: ["/bin/bash"]
   only:
     - main
   environment:
