@@ -76,7 +76,7 @@ stages:
     name: production/${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}
     url: http://${HOST}
   before_script:
-    - apt add gettext
+    - apk add gettext
   script:
     - *environment_variables
     - *environment_variables_substitution
