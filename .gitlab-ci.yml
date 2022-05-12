@@ -104,6 +104,8 @@ variables:
   stage: deploy
   #image: registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.16.1
   image: k33g/k3g.utilities:1.0.0
+  services:
+    - registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
   only:
     - main
   environment:
