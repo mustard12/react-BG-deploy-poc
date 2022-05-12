@@ -69,14 +69,15 @@ stages:
 #----------------------------
 🚀deploy-to-production:
   stage: deploy
-  image: registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.16.1
+  #image: registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.16.1
+  image: k33g/k3g.utilities:1.0.0
   only:
     - main
   environment:
     name: production/${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}
     url: http://${HOST}
-  before_script:
-    - apk add gettext
+  #before_script:
+  #  - apk add gettext
   script:
     - *environment_variables
     - *environment_variables_substitution
