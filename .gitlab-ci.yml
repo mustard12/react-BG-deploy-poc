@@ -35,6 +35,24 @@ variables:
       allow_failure: true
   script:
     - export HELM_RELEASE_NAME="$BLUE_GREEN_DEPLOY"
+    # Determine if this deployment is already currently active.
+    - >
+        export BLUE_GREEN_IS_ACTIVE="$(
+          if VALUE=$(kubectl -n "$KUBE_NAMESPACE" \
+                        get deploy "$HELM_RELEASE_NAME" \
+                        -o=jsonpath='{.metadata.annotations.bluegreen/live}'); then
+            echo "$VALUE"
+          else
+            echo "false"
+          fi
+        )"
+   # If it is, then we must ensure the live production url is included.
+    - >
+        if [ "$BLUE_GREEN_IS_ACTIVE" = "true" ]; then
+          export ADDITIONAL_HOSTS="$CI_PROJECT_PATH_SLUG.$KUBE_INGRESS_BASE_DOMAIN"
+        fi
+
+
   environment:
     name: "$BLUE_GREEN_DEPLOY"
     url: http://$BLUE_GREEN_DEPLOY-$CI_PROJECT_PATH_SLUG.$KUBE_INGRESS_BASE_DOMAIN
@@ -102,17 +120,17 @@ variables:
 #----------------------------
 🚀deploy-to-production:
   stage: deploy
-  #image: registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.16.1
-  image: k33g/k3g.utilities:1.0.0
+  image: registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v0.16.1
+  #image: k33g/k3g.utilities:1.0.0
   services:
-    - amazon/aws-cli:latest
+    - registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
   only:
     - main
   environment:
     name: production/${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}
     url: http://${HOST}
-  #before_script:
-  #  - apk add gettext
+  before_script:
+    - apk add gettext
   script:
     - *environment_variables
     - *environment_variables_substitution
