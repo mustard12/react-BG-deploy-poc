@@ -127,7 +127,7 @@ variables:
     name: production/${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}
     url: http://${HOST}
   before_script:
-    - kubectl create namespace ${NAMESPACE}> --dry-run=client -o yaml | kubectl apply -f -
+    - kubectl create namespace ${NAMESPACE} > --dry-run=client -o yaml | kubectl apply -f -
   script:
     - *environment_variables
     - *environment_variables_substitution
