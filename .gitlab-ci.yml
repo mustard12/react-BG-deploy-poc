@@ -101,9 +101,9 @@ variables:
     kubectl create secret -n "$NAMESPACE" \
       docker-registry image-pull-secret \
       --docker-server="$CI_REGISTRY" \
-      --docker-username="${CI_REGISTRY_USER}" \
-      --docker-password="${CI_REGISTRY_PASSWORD}" \
-      --docker-email="${GITLAB_USER_EMAIL}" \
+      --docker-username="$CI_REGISTRY_USER" \
+      --docker-password="$CI_REGISTRY_PASSWORD" \
+      --docker-email="$GITLAB_USER_EMAIL" \
       -o yaml --dry-run | kubectl replace -n "$NAMESPACE" --force -f -
 
 .kubectl_apply: &kubectl_apply
