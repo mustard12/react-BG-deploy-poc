@@ -127,10 +127,10 @@ variables:
     name: production/${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}
     url: http://${HOST}
   before_script:
-    - > 
+    - >
         echo "apiVersion: v1 
         kind: Namespace
-          metadata:
+        metadata:
         name: ${NAMESPACE}" | kubectl apply -f -
   script:
     - *environment_variables
