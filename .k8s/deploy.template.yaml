@@ -41,7 +41,7 @@ metadata:
   labels:
     app: ${APPLICATION_NAME}
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: ${APPLICATION_NAME}
   ports:
@@ -58,8 +58,8 @@ metadata:
     kubernetes.io/ingress.class: "gitlab-ingress-nginx"
 spec:
   rules:
-    - host: ${HOST}
-      http:
+    #- host: ${HOST}
+    - http:
         paths:
           - pathType: ImplementationSpecific
             path: /
