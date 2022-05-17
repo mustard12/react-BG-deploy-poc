@@ -57,13 +57,14 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "gitlab-ingress-nginx"
 spec:
+  ingressClassName: nginx
   rules:
     #- host: ${HOST}
     - http:
         paths:
           - pathType: ImplementationSpecific
             path: /
-            backend:
+            frontend:
               service:
                 name: ${APPLICATION_NAME}-service
                 port:
