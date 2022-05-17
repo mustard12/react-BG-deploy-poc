@@ -34,12 +34,12 @@ variables:
       when: manual
       allow_failure: true
   script:
-    - export HELM_RELEASE_NAME="$BLUE_GREEN_DEPLOY"
+    - export RELEASE_NAME="$BLUE_GREEN_DEPLOY"
     # Determine if this deployment is already currently active.
     - >
         export BLUE_GREEN_IS_ACTIVE="$(
           if VALUE=$(kubectl -n "$NAMESPACE" \
-                        get deploy "$HELM_RELEASE_NAME" \
+                        get deploy "$RELEASE_NAME" \
                         -o=jsonpath='{.metadata.annotations.bluegreen/live}'); then
             echo "$VALUE"
           else
