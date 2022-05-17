@@ -63,7 +63,7 @@ spec:
     #- host: ${HOST}
     - http:
         paths:
-          - pathType: ImplementationSpecific
+          - pathType: Prefix
             path: /
             backend:
               service:
