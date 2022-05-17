@@ -38,7 +38,7 @@ variables:
     # Determine if this deployment is already currently active.
     - >
         export BLUE_GREEN_IS_ACTIVE="$(
-          if VALUE=$(kubectl -n "$KUBE_NAMESPACE" \
+          if VALUE=$(kubectl -n "$NAMESPACE" \
                         get deploy "$HELM_RELEASE_NAME" \
                         -o=jsonpath='{.metadata.annotations.bluegreen/live}'); then
             echo "$VALUE"
@@ -77,7 +77,7 @@ variables:
 #----------------------------
 .environment_variables: &environment_variables
 - |
-  export CONTAINER_PORT=${CONTAINER_PORT:-3000}
+  export CONTAINER_PORT=${CONTAINER_PORT:-80}
   export EXPOSED_PORT=${EXPOSED_PORT:-80}
   export APPLICATION_NAME=${CI_PROJECT_NAME}
   export REPLICAS=1
