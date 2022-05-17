@@ -35,13 +35,13 @@ spec:
 ---
 # Service
 apiVersion: v1
-kind: ClusterIP
+kind: Service
 metadata:
   name: ${APPLICATION_NAME}-service
   labels:
     app: ${APPLICATION_NAME}
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: ${APPLICATION_NAME}
   ports:
