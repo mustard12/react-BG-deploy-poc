@@ -64,7 +64,7 @@ spec:
         paths:
           - pathType: ImplementationSpecific
             path: /
-            frontend:
+            backend:
               service:
                 name: ${APPLICATION_NAME}-service
                 port:
