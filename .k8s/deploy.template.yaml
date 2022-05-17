@@ -41,10 +41,30 @@ metadata:
   labels:
     app: ${APPLICATION_NAME}
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: ${APPLICATION_NAME}
   ports:
     - protocol: TCP
       port: ${EXPOSED_PORT}
       targetPort: ${CONTAINER_PORT}
+---
+# Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ${APPLICATION_NAME}-ingress
+  annotations:
+    kubernetes.io/ingress.class: "gitlab-ingress-nginx"
+spec:
+  rules:
+    - host: ${HOST}
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /
+            backend:
+              service:
+                name: ${APPLICATION_NAME}-service
+                port:
+                  number: ${EXPOSED_PORT}
