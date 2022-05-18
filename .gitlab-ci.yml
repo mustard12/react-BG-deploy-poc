@@ -97,6 +97,9 @@ variables:
 .ensure_secret: &ensure_secret
 - |
   echo "Checking secret.."
+  echo $DOCKER_USERNAME
+  echo $CI_REGISTRY_USER
+  echo ${DOCKER_USERNAME:-${CI_REGISTRY_USER}}
   kubectl describe secrets image-pull-secret -n "$NAMESPACE" || \
     kubectl create secret -n "$NAMESPACE" \
       docker-registry image-pull-secret \
